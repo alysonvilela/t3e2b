@@ -52,8 +52,8 @@ it on a private network.
 
 ## Capacity and gotchas
 
-- Sandbox RAM comes from the hugepage pool (4 GiB by default): the default 4 GB `t3` template needs a pool of at least 8 GiB to
-  build (about twice its memory) and 4 GiB to run. On a 16 GB node set `vm.nr_hugepages=4096` (8 GiB), or build with
+- Sandbox RAM comes from the hugepage pool (4 GiB by default): the default 2.5 GB `t3` template needs a pool of at least 5 GiB to
+  build (about twice its memory) and 2.5 GiB to run. On a 16 GB node set `vm.nr_hugepages=4096` (8 GiB) to fit 3 boxes, or build with
   `--memory 1536` to fit the default pool. Paused sandboxes use no RAM. To grow the pool, raise `vm.nr_hugepages`
   and the orchestrator's `hugepages-2Mi` request/limit and its `HUGEPAGES` setting together.
 - Allocating hugepages on a running node can fail because memory is fragmented: reboot and re-run `host-prep.sh`.

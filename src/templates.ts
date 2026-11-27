@@ -83,9 +83,9 @@ export async function buildTemplate(name: TemplateName, opts: { cpuCount?: numbe
   return Template.build(templates[name](), name, {
     cpuCount: opts.cpuCount ?? 4,
     // One sandbox runs the T3 server plus up to 3 Claude Code sessions (one worktree each): 1.5 GB
-    // starved it. Self-hosted E2B takes sandbox RAM from the node's hugepage pool and a build needs
+    // starved it, 2.5 GB with swap holds. Self-hosted E2B takes sandbox RAM from the node's hugepage pool and a build needs
     // about twice this, so a 16 GB node needs the pool raised (selfhost/README.md).
-    memoryMB: opts.memoryMB ?? 4096,
+    memoryMB: opts.memoryMB ?? 2560,
     onBuildLogs: (entry) => process.stderr.write(`${entry.toString()}\n`),
   });
 }
