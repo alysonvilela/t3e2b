@@ -81,10 +81,11 @@ export type TemplateName = keyof typeof templates;
 
 export async function buildTemplate(name: TemplateName, opts: { cpuCount?: number; memoryMB?: number } = {}) {
   return Template.build(templates[name](), name, {
-    cpuCount: opts.cpuCount ?? 2,
-    // Self-hosted E2B takes sandbox RAM from the node's hugepage pool and a build needs about
-    // twice the template's memory, so keep this modest on small nodes.
-    memoryMB: opts.memoryMB ?? 1536,
+    cpuCount: opts.cpuCount ?? 4,
+    // One sandbox runs the T3 server plus up to 3 Claude Code sessions (one worktree each): 1.5 GB
+    // starved it. Self-hosted E2B takes sandbox RAM from the node's hugepage pool and a build needs
+    // about twice this, so a 16 GB node needs the pool raised (selfhost/README.md).
+    memoryMB: opts.memoryMB ?? 4096,
     onBuildLogs: (entry) => process.stderr.write(`${entry.toString()}\n`),
   });
 }

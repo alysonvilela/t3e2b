@@ -17,6 +17,11 @@ T3_VERSION="\${1:-}"
 export PATH="$HOME/.local/bin:$PATH"
 log() { echo "[t3e2b] $*"; }
 
+# 0. Swap: parallel agents spike memory; a swap file turns an OOM kill into a slowdown. Needs passwordless sudo.
+if [ "$(swapon --show --noheadings | wc -l)" = 0 ] && sudo -n true 2>/dev/null; then
+  sudo fallocate -l 4G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile >/dev/null && sudo swapon /swapfile || log "swap setup skipped"
+fi
+
 # 1. T3 Code, via the official installer (checks the release's SHA256SUMS).
 have="$(t3 --version 2>/dev/null | sed -n 's/^t3 v//p' || true)"
 if [ -z "$have" ] || { [ -n "$T3_VERSION" ] && [ "$have" != "$T3_VERSION" ]; }; then

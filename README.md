@@ -92,7 +92,7 @@ with the token; the sandbox gets no SSH keys. Everything forwarded is readable b
 ```
 t3e2b create [--repo <url|none>] [--ref main] [--pair] [--template t3] [--idle 10] [--ttl 120] [--access full-access] [--no-setup] [--keep-alive]
 t3e2b list | pause <id> | resume <id> [--ttl <min>] | pair <id> | destroy <id> | exec <id> <cmd> | reap | doctor
-t3e2b template <t3|desktop> [--memory 1536] [--cpu 2]
+t3e2b template <t3|desktop> [--memory 4096] [--cpu 4]
 ```
 
 `<id>` is a sandbox id, environment id or name. Idle pausing runs inside the MCP server; without it, E2B
@@ -102,6 +102,10 @@ The `desktop` template is a small Linux desktop (Xfce, Firefox, noVNC on port 60
 experiments with the [e2b-desktop](https://github.com/e2b-dev/desktop) SDK.
 
 ## Lifecycle policy
+
+One sandbox (4 GB, 4 CPUs, 4 GB swap) is meant to host up to 3 parallel agents on the same T3 connection:
+inside it, `t3 thread start <project> <message> --worktree main --branch <name>` gives each its own worktree.
+To delete a forgotten box instead of pausing it, run with `T3E2B_IDLE_ACTION=kill` and `create --idle 180`.
 
 - **Idle:** once a thread has run and none is busy (`preparing/queued/starting/running/waiting`) for
   `idleMinutes` (default 10), the sandbox is paused (`T3E2B_IDLE_ACTION=kill` deletes instead). A sandbox where
