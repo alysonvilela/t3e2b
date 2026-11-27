@@ -112,6 +112,8 @@ To delete a forgotten box instead of pausing it, run with `T3E2B_IDLE_ACTION=kil
   no thread ever started is paused after `3 × idleMinutes`.
 - **TTL:** E2B pauses the sandbox at `ttlMinutes` (default 120) after each start or resume, even if t3e2b is
   gone. There is no auto-resume: T3's connection attempts would wake it right back up. Resume explicitly.
+- **Cap:** at most `T3E2B_MAX_RUNNING` (default 3, 0 = no limit) sandboxes run at once; `create` and `resume` refuse
+  beyond that. Resume also fast-forwards the repo's checked-out branch (`git fetch` + `merge --ff-only`) unless it is dirty.
 - **Cleanup:** paused for `T3E2B_PAUSED_MAX_DAYS` (default 7) → deleted. Failed setups are deleted right away.
 - **Crash-safe:** state lives in `~/.t3e2b/state.json`. Sandboxes carry the E2B metadata `t3e2b=1`; `list`
   reports labelled sandboxes the state file doesn't know.

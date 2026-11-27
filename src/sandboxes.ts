@@ -81,6 +81,9 @@ const DEFAULT_FORWARD = ["CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC_API_KEY", "OPENAI
 const skipLink = process.env.T3E2B_SKIP_LINK === "1";
 const idleAction = process.env.T3E2B_IDLE_ACTION === "kill" ? "kill" : "pause";
 const pausedMaxDays = Number(process.env.T3E2B_PAUSED_MAX_DAYS ?? 7);
+/** Most sandboxes running at once (creating or ready). Each one holds its RAM; 0 = no limit. */
+const maxRunning = Number(process.env.T3E2B_MAX_RUNNING ?? 3);
+const RUNNING_PHASES = new Set<string>(["creating", "installing", "starting", "cloning", "linking", "ready"]);
 const stateDir = process.env.T3E2B_STATE_DIR ?? join(homedir(), ".t3e2b");
 const stateFile = join(stateDir, "state.json");
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -169,7 +172,19 @@ export class SandboxManager {
     return { ...env, ...extra };
   }
 
+  /** Refuses to start another sandbox past T3E2B_MAX_RUNNING: pause or destroy one first. */
+  private assertCapacity(): void {
+    const running = this.list().filter((x) => RUNNING_PHASES.has(x.phase));
+    if (maxRunning > 0 && running.length >= maxRunning) {
+      throw new Error(
+        `${running.length} sandboxes already running (limit ${maxRunning}, T3E2B_MAX_RUNNING): ` +
+          `pause or destroy one first (${running.map((x) => x.name).join(", ")})`,
+      );
+    }
+  }
+
   async create(opts: CreateOptions, progress: Progress = () => {}): Promise<ManagedSandbox & { pairLink?: string }> {
+    this.assertCapacity();
     const pairOnly = opts.pairOnly ?? false;
     await this.preflight(pairOnly);
     // Match the local client's version so both ends speak the same protocol.
@@ -336,12 +351,24 @@ export class SandboxManager {
   /** Resumes a paused sandbox with a fresh ttlMinutes and makes sure t3 serve answers. */
   async resume(idOrEnv: string, ttlMinutes?: number): Promise<ManagedSandbox> {
     const s = this.get(idOrEnv);
+    if (s.phase === "paused") this.assertCapacity();
     if (ttlMinutes) s.ttlMinutes = ttlMinutes;
     await this.e2b.resume(s.sandboxId, s.ttlMinutes * 60_000);
     const healthy = await this.e2b.exec(s.sandboxId, healthCommand, 15).then((r) => r.exitCode === 0, () => false);
     if (!healthy) {
       await this.e2b.execDetached(s.sandboxId, startServerCommand);
       await this.waitForHealth(s.sandboxId);
+    }
+    // Best effort: fast-forward the checked-out branch so a resumed box isn't stale. Skipped when the tree is dirty.
+    if (s.workspacePath) {
+      await this.e2b
+        .exec(
+          s.sandboxId,
+          "git diff --quiet && git diff --cached --quiet && git fetch -q --prune origin && git merge -q --ff-only '@{u}'",
+          60,
+          s.workspacePath,
+        )
+        .catch(() => {});
     }
     this.update(s, { phase: "ready", pausedAt: undefined, lastBusyAt: new Date().toISOString() });
     return s;
