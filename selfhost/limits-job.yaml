@@ -1,0 +1,29 @@
+# Sandbox limits. E2B keeps them in tables of its own Postgres, not in
+# env vars, so this Job writes them there on every `kubectl apply -k .`.
+# Disk: the node root is 97 GB; 80% = ~77 GB. With 10 GB per sandbox (2 at once fit
+# in the hugepage RAM) plus ~32 GB already used, we stay well under that.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: e2b-limits
+spec:
+  ttlSecondsAfterFinished: 60   # deleted after it runs, so the next apply runs it again
+  backoffLimit: 30
+  template:
+    spec:
+      hostNetwork: true          # E2B's Postgres listens on the node's 127.0.0.1
+      nodeSelector: { e2b.dev/single-node: "true" }
+      restartPolicy: OnFailure
+      containers:
+        - name: psql
+          image: postgres:18.6-alpine
+          env: [{ name: PGPASSWORD, value: postgres }]
+          command: [psql, -h, 127.0.0.1, -U, postgres, -d, postgres, -v, ON_ERROR_STOP=1, -c]
+          args:
+            # Teams without a tier (like the one our API key belongs to) use default_limits;
+            # the rest use their tier / project_limits. Set the same values in all three.
+            - >-
+              update default_limits set max_length_hours = 24, disk_mb = 10240, default_free_disk_size_mb = 10240;
+              update project_limits set max_length_hours = 24, disk_mb = 10240, default_free_disk_size_mb = 10240;
+              update tiers          set max_length_hours = 24, disk_mb = 10240;
+              select 'default' as limits, max_length_hours, default_free_disk_size_mb from default_limits;

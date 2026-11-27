@@ -1,0 +1,8 @@
+t3e2b
+Copyright 2026 the t3e2b authors
+
+This product includes software derived from t3boat
+(https://github.com/trevize-dev/t3boat), licensed under the Apache License 2.0.
+src/t3local.ts and parts of src/sandboxes.ts, src/bootstrap.ts, src/index.ts, src/cli.ts and
+skills/ were adapted from it: the boat.dev client was replaced by the E2B SDK, idle sandboxes
+are paused instead of deleted, and pause/resume/pair/template commands were added.

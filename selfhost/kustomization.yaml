@@ -1,0 +1,18 @@
+# E2B Embed overlay for a single-node k3s cluster.
+# Upstream: https://github.com/e2b-dev/runtime/tree/main/embed/kubernetes
+# Pinned to a commit so re-applies are reproducible; bump the ref to upgrade.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: e2b
+resources:
+  - https://github.com/e2b-dev/runtime//embed/kubernetes?ref=86cb50338fe3bd73c10b13270aaa576b48f5d582
+  - limits-job.yaml
+configMapGenerator:
+  - name: e2b-settings
+    behavior: merge
+    literals:
+      # "Little sandboxes" on a small node: cap how many run at once.
+      # Keep the pool size equal to the sandbox limit (upstream README).
+      - MAX_SANDBOXES_PER_NODE=20
+      - MAX_STARTING_INSTANCES_PER_NODE=3
+      - NETWORK_REUSED_SLOTS_POOL_SIZE=20

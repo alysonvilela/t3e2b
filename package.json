@@ -1,0 +1,53 @@
+{
+  "name": "t3e2b",
+  "version": "0.1.0",
+  "description": "MCP server and CLI that boot E2B sandboxes (cloud or self-hosted) as linked T3 Code environments, pause them when idle and resume them on demand.",
+  "license": "Apache-2.0",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "t3code",
+    "t3",
+    "e2b",
+    "firecracker",
+    "sandbox",
+    "agents"
+  ],
+  "homepage": "https://github.com/alysonvilela/t3e2b#readme",
+  "bugs": {
+    "url": "https://github.com/alysonvilela/t3e2b/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alysonvilela/t3e2b.git"
+  },
+  "type": "module",
+  "bin": {
+    "t3e2b": "bin/t3e2b.ts"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md",
+    "NOTICE",
+    "skills/orchestrate-e2b-sandboxes"
+  ],
+  "engines": {
+    "bun": ">=1.3"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "start": "bun bin/t3e2b.ts",
+    "prepublishOnly": "bun run typecheck"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "e2b": "2.63.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "typescript": "^5.9.3"
+  }
+}

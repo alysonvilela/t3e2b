@@ -1,0 +1,21 @@
+# Global toolchain for the "t3" sandbox template (copied to /etc/mise/config.toml).
+# A repo's own mise.toml / .tool-versions / .nvmrc / .python-version wins over these;
+# t3box runs `mise install` after cloning so those versions are ready before the agent starts.
+
+[tools]
+node = "lts"
+bun = "latest"
+pnpm = "latest"
+"npm:yarn" = "latest"   # yarn 1; berry projects pin their own via packageManager/corepack
+deno = "latest"
+python = "3.13"
+uv = "latest"
+go = "latest"
+rust = "stable"
+
+[settings]
+# read .nvmrc, .python-version, .go-version, ... of each repo
+idiomatic_version_file_enable_tools = ["node", "python", "go"]
+# repos cloned into /home/user may bring a mise.toml; don't stop to ask whether to trust it
+trusted_config_paths = ["/home/user"]
+yes = true
