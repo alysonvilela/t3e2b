@@ -149,7 +149,7 @@ bun bin/t3e2b.ts doctor
 bun run typecheck
 ```
 
-Release: `npm publish` (runs the typecheck first).
+Release: `bun publish` (runs the typecheck first).
 
 ## License
 
